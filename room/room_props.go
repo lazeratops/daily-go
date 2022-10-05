@@ -14,6 +14,10 @@ type RoomProps struct {
 	MaxParticipants int   `json:"max_participants,omitempty"`
 }
 
+func GetRoomPropsKeys() []string {
+	return []string{"exp", "max_participants"}
+}
+
 // SetExpiry sets the room expiry as a Unix timestamp
 func (p *RoomProps) SetExpiry(expiry time.Time) {
 	p.Exp = expiry.Unix()

@@ -67,6 +67,10 @@ func TestCreate(t *testing.T) {
 				Name:      "getting-started-webinar",
 				Url:       "https://api-demo.daily.co/getting-started-webinar",
 				CreatedAt: creationTime,
+				AdditionalProps: map[string]interface{}{
+					"start_audio_off": true,
+					"start_video_off": true,
+				},
 			},
 		},
 	}
