@@ -3,6 +3,7 @@ package room
 
 import (
 	"errors"
+	"golang/auth"
 	"golang/room"
 )
 
@@ -43,9 +44,12 @@ func NewDaily(apiKey string) (*Daily, error) {
 
 // CreateRoom creates a Daily room using Daily's REST API
 func (d *Daily) CreateRoom(name string, isPrivate bool, props room.RoomProps, additionalProps map[string]interface{}) (*room.Room, error) {
+	creds := auth.Creds{
+		APIKey: d.apiKey,
+		APIURL: d.apiURL,
+	}
 	return room.Create(room.CreateParams{
-		APIKey:          d.apiKey,
-		APIURL:          d.apiURL,
+		Creds:           creds,
 		Name:            name,
 		IsPrivate:       isPrivate,
 		Props:           props,

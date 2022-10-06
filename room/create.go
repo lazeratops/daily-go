@@ -11,8 +11,7 @@ import (
 )
 
 type CreateParams struct {
-	APIKey          string
-	APIURL          string
+	Creds           auth.Creds
 	Name            string
 	IsPrivate       bool
 	Props           RoomProps
@@ -32,9 +31,9 @@ func Create(params CreateParams) (*Room, error) {
 		return nil, fmt.Errorf("failed to make room creation request body: %w", err)
 	}
 
-	endpoint, err := roomsEndpoint(params.APIURL)
+	endpoint, err := roomsEndpoint(params.Creds.APIURL)
 	if err != nil {
-		return nil, errors.NewErrFailedEndpointConstruction(err)
+		return nil, err
 	}
 	// Make the actual HTTP request
 	req, err := http.NewRequest("POST", endpoint, reqBody)
@@ -43,7 +42,7 @@ func Create(params CreateParams) (*Room, error) {
 	}
 
 	// Prepare auth and content-type headers for request
-	auth.SetAPIKeyAuthHeaders(req, params.APIKey)
+	auth.SetAPIKeyAuthHeaders(req, params.Creds.APIKey)
 
 	// Do the thing!!!
 	res, err := http.DefaultClient.Do(req)

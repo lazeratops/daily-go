@@ -3,6 +3,7 @@ package room
 import (
 	"encoding/json"
 	"fmt"
+	"golang/errors"
 	"net/url"
 	"path"
 	"time"
@@ -46,7 +47,6 @@ func (r *Room) UnmarshalJSON(data []byte) error {
 	r.Privacy = rm.Privacy
 	r.CreatedAt = rm.CreatedAt
 	r.Config = rm.Config
-	r.AdditionalProps = make(map[string]interface{})
 
 	// Check config values that are not in RoomProps
 	var m map[string]interface{}
@@ -63,6 +63,9 @@ func (r *Room) UnmarshalJSON(data []byte) error {
 		// config keys and values into AdditionalProps
 		for k, v := range config {
 			if !isInSlice(k, roomPropsKeys) {
+				if r.AdditionalProps == nil {
+					r.AdditionalProps = make(map[string]interface{})
+				}
 				r.AdditionalProps[k] = v
 			}
 		}
@@ -80,13 +83,33 @@ func isInSlice(ele string, s []string) bool {
 	return false
 }
 
-func roomsEndpoint(apiURL string, paths ...string) (string, error) {
-	u, err := url.Parse(apiURL)
+func roomsEndpointWithParams(apiURL string, queryParams map[string]string, paths ...string) (string, error) {
+	u, err := roomsURL(apiURL, paths...)
 	if err != nil {
 		return "", err
+	}
+	q := u.Query()
+	for k, v := range queryParams {
+		q.Set(k, v)
+	}
+	return u.String(), nil
+}
+
+func roomsEndpoint(apiURL string, paths ...string) (string, error) {
+	u, err := roomsURL(apiURL, paths...)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
+}
+
+func roomsURL(apiURL string, paths ...string) (*url.URL, error) {
+	u, err := url.Parse(apiURL)
+	if err != nil {
+		return nil, errors.NewErrFailedEndpointConstruction(err)
 	}
 
 	allPaths := append([]string{u.Path}, paths...)
 	u.Path = path.Join(allPaths...)
-	return u.String(), nil
+	return u, nil
 }

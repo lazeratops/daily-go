@@ -9,10 +9,10 @@ import (
 	"net/http"
 )
 
-func GetOne(roomName, apiKey, apiURL string) (*Room, error) {
-	endpoint, err := roomsEndpoint(apiURL, roomName)
+func GetOne(roomName string, creds auth.Creds) (*Room, error) {
+	endpoint, err := roomsEndpoint(creds.APIURL, roomName)
 	if err != nil {
-		return nil, errors.NewErrFailedEndpointConstruction(err)
+		return nil, err
 	}
 
 	// Make the actual HTTP request
@@ -22,7 +22,7 @@ func GetOne(roomName, apiKey, apiURL string) (*Room, error) {
 	}
 
 	// Prepare auth and content-type headers for request
-	auth.SetAPIKeyAuthHeaders(req, apiKey)
+	auth.SetAPIKeyAuthHeaders(req, creds.APIKey)
 
 	// Do the thing!!!
 	res, err := http.DefaultClient.Do(req)
@@ -46,5 +46,4 @@ func GetOne(roomName, apiKey, apiURL string) (*Room, error) {
 	}
 
 	return &room, nil
-
 }
