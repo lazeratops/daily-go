@@ -66,6 +66,7 @@ func TestCreate(t *testing.T) {
 				ID:        "987b5eb5-d116-4a4e-8e2c-14fcb5710966",
 				Name:      "getting-started-webinar",
 				Url:       "https://api-demo.daily.co/getting-started-webinar",
+				Privacy:   PrivacyPrivate,
 				CreatedAt: creationTime,
 				AdditionalProps: map[string]interface{}{
 					"start_audio_off": true,
@@ -99,6 +100,74 @@ func TestCreate(t *testing.T) {
 			}
 
 			gotRoom, gotErr := Create(createParams)
+			require.ErrorIs(t, gotErr, tc.wantErr)
+			if gotErr == nil {
+				require.EqualValues(t, tc.wantRoom, *gotRoom)
+			}
+		})
+	}
+}
+
+func TestGetOne(t *testing.T) {
+	const rfc3339 = "2006-01-02T15:04:05Z07:00"
+	creationTime, gotErr := time.Parse(rfc3339, "2019-01-26T09:01:22.000Z")
+	require.NoError(t, gotErr)
+	testCases := []struct {
+		name               string
+		dailyResStatusCode int
+		dailyResBody       string
+		wantRoom           Room
+		wantErr            error
+	}{
+		{
+			name:               "bad status code",
+			dailyResStatusCode: http.StatusBadRequest,
+			dailyResBody:       "{}",
+			wantErr:            errors.ErrFailedAPICall,
+		},
+		{
+			name:               "room retrieved",
+			dailyResStatusCode: http.StatusOK,
+			// This data is retrieved from API examples:
+			// https://docs.daily.co/reference/rest-api/rooms/get-room-config#example-request
+			dailyResBody: `
+				{
+					"id":"d61cd7b2-a273-42b4-89bd-be763fd562c1",
+					"name":"w2pp2cf4kltgFACPKXmX",
+					"api_created":false,
+					"privacy":"public",
+					"url":"https://api-demo.daily.co/w2pp2cf4kltgFACPKXmX",
+					"created_at":"2019-01-26T09:01:22.000Z",
+					"config":{"start_video_off":true}
+				}
+			`,
+			wantRoom: Room{
+				ID:        "d61cd7b2-a273-42b4-89bd-be763fd562c1",
+				Name:      "w2pp2cf4kltgFACPKXmX",
+				Privacy:   PrivacyPublic,
+				Url:       "https://api-demo.daily.co/w2pp2cf4kltgFACPKXmX",
+				CreatedAt: creationTime,
+				AdditionalProps: map[string]interface{}{
+					"start_video_off": true,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tc.dailyResStatusCode)
+				_, err := w.Write([]byte(tc.dailyResBody))
+				require.NoError(t, err)
+			}))
+
+			defer testServer.Close()
+
+			gotRoom, gotErr := GetOne("someName", "someKey", testServer.URL)
 			require.ErrorIs(t, gotErr, tc.wantErr)
 			if gotErr == nil {
 				require.EqualValues(t, tc.wantRoom, *gotRoom)

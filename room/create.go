@@ -21,7 +21,7 @@ type CreateParams struct {
 
 type createRoomBody struct {
 	Name       string                 `json:"name,omitempty"`
-	Privacy    string                 `json:"privacy,omitempty"`
+	Privacy    Privacy                `json:"privacy,omitempty"`
 	Properties map[string]interface{} `json:"properties,omitempty"`
 }
 
@@ -34,7 +34,7 @@ func Create(params CreateParams) (*Room, error) {
 
 	endpoint, err := roomsEndpoint(params.APIURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to obtain rooms endpoint: %w", err)
+		return nil, errors.NewErrFailedEndpointConstruction(err)
 	}
 	// Make the actual HTTP request
 	req, err := http.NewRequest("POST", endpoint, reqBody)
@@ -54,7 +54,7 @@ func Create(params CreateParams) (*Room, error) {
 	// Parse the response
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+		return nil, errors.NewErrFailedBodyRead(err)
 	}
 
 	if res.StatusCode != http.StatusOK {
@@ -63,7 +63,7 @@ func Create(params CreateParams) (*Room, error) {
 
 	var room Room
 	if err := json.Unmarshal(resBody, &room); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal body into Room: %w", err)
+		return nil, NewErrFailUnmarshal(err)
 	}
 
 	return &room, nil
@@ -82,9 +82,10 @@ func makeCreateRoomBody(name string, isPrivate bool, props RoomProps, additional
 		Properties: propsData,
 	}
 
-	// Rooms are public by default
 	if isPrivate {
-		reqBody.Privacy = "private"
+		reqBody.Privacy = PrivacyPrivate
+	} else {
+		reqBody.Privacy = PrivacyPublic
 	}
 
 	bodyBlob, err := json.Marshal(reqBody)

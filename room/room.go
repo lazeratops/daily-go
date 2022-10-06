@@ -8,11 +8,19 @@ import (
 	"time"
 )
 
+type Privacy string
+
+const (
+	PrivacyPrivate Privacy = "private"
+	PrivacyPublic          = "public"
+)
+
 // Room represents a Daily room
 type Room struct {
 	ID              string    `json:"id"`
 	Name            string    `json:"name"`
 	Url             string    `json:"url"`
+	Privacy         Privacy   `json:"privacy"`
 	CreatedAt       time.Time `json:"created_at"`
 	Config          RoomProps `json:"config"`
 	AdditionalProps map[string]interface{}
@@ -23,6 +31,7 @@ func (r *Room) UnmarshalJSON(data []byte) error {
 		ID        string    `json:"id"`
 		Name      string    `json:"name"`
 		Url       string    `json:"url"`
+		Privacy   Privacy   `json:"privacy"`
 		CreatedAt time.Time `json:"created_at"`
 		Config    RoomProps `json:"config"`
 	}{}
@@ -34,6 +43,7 @@ func (r *Room) UnmarshalJSON(data []byte) error {
 	r.ID = rm.ID
 	r.Name = rm.Name
 	r.Url = rm.Url
+	r.Privacy = rm.Privacy
 	r.CreatedAt = rm.CreatedAt
 	r.Config = rm.Config
 	r.AdditionalProps = make(map[string]interface{})
@@ -70,11 +80,13 @@ func isInSlice(ele string, s []string) bool {
 	return false
 }
 
-func roomsEndpoint(apiURL string) (string, error) {
+func roomsEndpoint(apiURL string, paths ...string) (string, error) {
 	u, err := url.Parse(apiURL)
 	if err != nil {
 		return "", err
 	}
-	u.Path = path.Join(u.Path, "rooms")
+
+	allPaths := append([]string{u.Path}, paths...)
+	u.Path = path.Join(allPaths...)
 	return u.String(), nil
 }
