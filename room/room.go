@@ -92,6 +92,7 @@ func roomsEndpointWithParams(apiURL string, queryParams map[string]string, paths
 	for k, v := range queryParams {
 		q.Set(k, v)
 	}
+	u.RawQuery = q.Encode()
 	return u.String(), nil
 }
 
@@ -109,7 +110,7 @@ func roomsURL(apiURL string, paths ...string) (*url.URL, error) {
 		return nil, errors.NewErrFailedEndpointConstruction(err)
 	}
 
-	allPaths := append([]string{u.Path}, paths...)
+	allPaths := append([]string{u.Path, "rooms"}, paths...)
 	u.Path = path.Join(allPaths...)
 	return u, nil
 }

@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func GetOne(roomName string, creds auth.Creds) (*Room, error) {
+func GetOne(creds auth.Creds, roomName string) (*Room, error) {
 	endpoint, err := roomsEndpoint(creds.APIURL, roomName)
 	if err != nil {
 		return nil, err

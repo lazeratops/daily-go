@@ -208,10 +208,10 @@ func TestGetOne(t *testing.T) {
 
 			defer testServer.Close()
 
-			gotRoom, gotErr := GetOne("someName", auth.Creds{
+			gotRoom, gotErr := GetOne(auth.Creds{
 				APIKey: "someKey",
 				APIURL: testServer.URL,
-			})
+			}, "someName")
 			require.ErrorIs(t, gotErr, tc.wantErr)
 			if gotErr == nil {
 				require.EqualValues(t, tc.wantRoom, *gotRoom)

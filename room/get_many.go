@@ -7,10 +7,11 @@ import (
 	"golang/errors"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-type roomsResponse struct {
+type getManyResponse struct {
 	TotalCount int    `json:"total_count"`
 	Data       []Room `json:"data"`
 }
@@ -47,12 +48,24 @@ func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 		return nil, fmt.Errorf("failed to marshal rooms retrieval params: %w", err)
 	}
 
-	var m map[string]string
-	if err := json.Unmarshal(data, &m); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal JSON params to map: %w", err)
+	var paramsMap map[string]string
+	if params != nil {
+		var m map[string]int
+		if err := json.Unmarshal(data, &m); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON params to map: %w", err)
+		}
+
+		paramsMap = make(map[string]string)
+		for k, v := range m {
+			if v == 0 {
+				continue
+			}
+			s := strconv.Itoa(v)
+			paramsMap[k] = s
+		}
 	}
 
-	endpoint, err := roomsEndpointWithParams(creds.APIURL, m)
+	endpoint, err := roomsEndpointWithParams(creds.APIURL, paramsMap)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +94,7 @@ func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 		return nil, errors.NewErrFailedAPICall(res.StatusCode, string(resBody))
 	}
 
-	var rooms roomsResponse
+	var rooms getManyResponse
 	if err := json.Unmarshal(resBody, &rooms); err != nil {
 		return nil, NewErrFailUnmarshal(err)
 	}
