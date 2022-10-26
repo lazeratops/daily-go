@@ -2,11 +2,13 @@ package room
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"golang/auth"
 	"golang/errors"
 	"io"
+	"math/big"
 	"net/http"
 )
 
@@ -22,6 +24,20 @@ type createRoomBody struct {
 	Name       string                 `json:"name,omitempty"`
 	Privacy    Privacy                `json:"privacy,omitempty"`
 	Properties map[string]interface{} `json:"properties,omitempty"`
+}
+
+// CreateWithPrefix creates a room with the name containing the specified
+// prefix. The rest of the name is randomized.
+func CreateWithPrefix(params CreateParams, prefix string) (*Room, error) {
+	if len(prefix) > 10 {
+		return nil, fmt.Errorf("prefix too long, must be up to 10 characters")
+	}
+	name, err := generateNameWithPrefix(prefix)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate room name: %w", err)
+	}
+	params.Name = name
+	return Create(params)
 }
 
 func Create(params CreateParams) (*Room, error) {
@@ -118,4 +134,26 @@ func concatRoomProperties(props RoomProps, additionalProps map[string]interface{
 	}
 
 	return mProps, nil
+}
+
+func generateNameWithPrefix(prefix string) (string, error) {
+	s, err := generateRandStr(20)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s%s", prefix, s), nil
+}
+
+func generateRandStr(length int) (string, error) {
+	const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
+	result := make([]byte, length)
+	for i := 0; i < length; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		if err != nil {
+			return "", err
+		}
+		result[i] = chars[num.Int64()]
+	}
+
+	return string(result), nil
 }

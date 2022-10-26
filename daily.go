@@ -1,10 +1,11 @@
-// Package room handles Daily room creation, retrieval, and modification
-package room
+// Package daily handles communication with the Daily REST API
+package daily
 
 import (
 	"errors"
 	"golang/auth"
 	"golang/room"
+	"time"
 )
 
 const (
@@ -22,8 +23,9 @@ var (
 
 // Daily communicates with Daily's REST API
 type Daily struct {
-	apiKey string
-	apiURL string
+	apiKey         string
+	apiURL         string
+	defaultRoomExp time.Duration
 }
 
 // NewDaily returns a new instance of Daily
@@ -38,8 +40,13 @@ func NewDaily(apiKey string) (*Daily, error) {
 		apiKey: apiKey,
 		// This is set on the struct instead of just reusing the
 		// const to enable overriding for unit tests.
-		apiURL: dailyURL,
+		apiURL:         dailyURL,
+		defaultRoomExp: time.Hour * 24,
 	}, nil
+}
+
+func (d *Daily) WithDefaultRoomExpiry(duration time.Duration) {
+	d.defaultRoomExp = duration
 }
 
 // CreateRoom creates a Daily room using Daily's REST API
@@ -47,6 +54,9 @@ func (d *Daily) CreateRoom(name string, isPrivate bool, props room.RoomProps, ad
 	creds := auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
+	}
+	if props.Exp == 0 {
+		props.SetExpiry(time.Now().Add(d.defaultRoomExp))
 	}
 	return room.Create(room.CreateParams{
 		Creds:           creds,
