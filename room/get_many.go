@@ -7,6 +7,7 @@ import (
 	"golang/errors"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -17,7 +18,7 @@ type getManyResponse struct {
 }
 
 type GetManyParams struct {
-	Limit         int32 `json:"limit"`
+	Limit         int   `json:"limit"`
 	EndingBefore  int64 `json:"ending_before"`
 	StartingAfter int64 `json:"starting_after"`
 }
@@ -43,13 +44,90 @@ func (p *GetManyParams) GetStartingAfter() time.Time {
 }
 
 func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
-	data, err := json.Marshal(params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal rooms retrieval params: %w", err)
+	// If no params given, find all rooms
+	if params == nil {
+		return getAllRooms(creds, nil)
 	}
 
-	var paramsMap map[string]string
-	if params != nil {
+	rooms, err := doGetRooms(creds, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make another request that starts with the
+	// oldest room returned, to confirm that we didn't
+	// miss any rooms
+	l := len(rooms.Data)
+	if l < params.Limit {
+		// Get the remaining rooms
+		lastRoom := rooms.Data[l-1]
+		newParams := GetManyParams{
+			StartingAfter: params.StartingAfter,
+			EndingBefore:  lastRoom.CreatedAt.Unix(),
+		}
+		moreRooms, err := GetMany(creds, &newParams)
+		if err != nil {
+			return nil, err
+		}
+		rooms.Data = append(rooms.Data, moreRooms...)
+	}
+
+	return rooms.Data, nil
+}
+
+func GetManyWithRegex(creds auth.Creds, params *GetManyParams, regex *regexp.Regexp) ([]Room, error) {
+	rooms, err := GetMany(creds, params)
+	if err != nil {
+		return nil, err
+	}
+	var matchedRooms []Room
+	for _, r := range rooms {
+		if regex.MatchString(r.Name) {
+			matchedRooms = append(matchedRooms, r)
+		}
+
+	}
+	return matchedRooms, nil
+}
+
+func getAllRooms(creds auth.Creds, params *GetManyParams) ([]Room, error) {
+	rooms, err := doGetRooms(creds, params)
+	if err != nil {
+		return nil, err
+	}
+	l := len(rooms.Data)
+	// If there are more rooms to retrieve,
+	// do so now
+	if rooms.TotalCount > l {
+		lastRoom := rooms.Data[l-1]
+		newParams := GetManyParams{
+			EndingBefore: lastRoom.CreatedAt.Unix(),
+		}
+		moreRooms, err := getAllRooms(creds, &newParams)
+		if err != nil {
+			return nil, err
+		}
+		rooms.Data = append(rooms.Data, moreRooms...)
+	}
+
+	return rooms.Data, nil
+}
+
+func doGetRooms(creds auth.Creds, params *GetManyParams) (*getManyResponse, error) {
+	var endpoint string
+	if params == nil {
+		var err error
+		endpoint, err = roomsEndpoint(creds.APIURL)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		data, err := json.Marshal(params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal rooms retrieval params: %w", err)
+		}
+
+		var paramsMap map[string]string
 		var m map[string]int
 		if err := json.Unmarshal(data, &m); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal JSON params to map: %w", err)
@@ -63,12 +141,13 @@ func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 			s := strconv.Itoa(v)
 			paramsMap[k] = s
 		}
+
+		endpoint, err = roomsEndpointWithParams(creds.APIURL, paramsMap)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	endpoint, err := roomsEndpointWithParams(creds.APIURL, paramsMap)
-	if err != nil {
-		return nil, err
-	}
 	// Make the actual HTTP request
 	req, err := http.NewRequest("GET", endpoint, nil)
 	if err != nil {
@@ -98,6 +177,5 @@ func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 	if err := json.Unmarshal(resBody, &rooms); err != nil {
 		return nil, NewErrFailUnmarshal(err)
 	}
-
-	return rooms.Data, nil
+	return &rooms, nil
 }

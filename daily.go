@@ -3,8 +3,6 @@ package daily
 
 import (
 	"errors"
-	"golang/auth"
-	"golang/room"
 	"time"
 )
 
@@ -47,39 +45,4 @@ func NewDaily(apiKey string) (*Daily, error) {
 
 func (d *Daily) WithDefaultRoomExpiry(duration time.Duration) {
 	d.defaultRoomExp = duration
-}
-
-// CreateRoom creates a Daily room using Daily's REST API
-func (d *Daily) CreateRoom(name string, isPrivate bool, props room.RoomProps, additionalProps map[string]interface{}) (*room.Room, error) {
-	creds := auth.Creds{
-		APIKey: d.apiKey,
-		APIURL: d.apiURL,
-	}
-	if props.Exp == 0 {
-		props.SetExpiry(time.Now().Add(d.defaultRoomExp))
-	}
-	return room.Create(room.CreateParams{
-		Creds:           creds,
-		Name:            name,
-		IsPrivate:       isPrivate,
-		Props:           props,
-		AdditionalProps: additionalProps,
-	})
-}
-
-// GetRooms returns multiple Daily rooms matching the given
-// limits, if any
-func (d *Daily) GetRooms(params *room.GetManyParams) ([]room.Room, error) {
-	return room.GetMany(auth.Creds{
-		APIKey: d.apiKey,
-		APIURL: d.apiURL,
-	}, params)
-}
-
-// DeleteRoom deletes the given Daily room
-func (d *Daily) DeleteRoom(roomName string) error {
-	return room.Delete(auth.Creds{
-		APIKey: d.apiKey,
-		APIURL: d.apiURL,
-	}, roomName)
 }
