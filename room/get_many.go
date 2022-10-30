@@ -85,7 +85,6 @@ func GetManyWithRegex(creds auth.Creds, params *GetManyParams, regex *regexp.Reg
 		if regex.MatchString(r.Name) {
 			matchedRooms = append(matchedRooms, r)
 		}
-
 	}
 	return matchedRooms, nil
 }
