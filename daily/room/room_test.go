@@ -2,8 +2,8 @@ package room
 
 import (
 	"github.com/stretchr/testify/require"
-	"golang/auth"
-	"golang/errors"
+	"golang/daily/auth"
+	"golang/daily/errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"

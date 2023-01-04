@@ -3,8 +3,8 @@ package room
 import (
 	"encoding/json"
 	"fmt"
-	"golang/auth"
-	"golang/errors"
+	"golang/daily/auth"
+	"golang/daily/errors"
 	"io"
 	"net/http"
 	"regexp"

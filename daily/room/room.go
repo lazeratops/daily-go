@@ -3,7 +3,7 @@ package room
 import (
 	"encoding/json"
 	"fmt"
-	"golang/errors"
+	"golang/daily/errors"
 	"net/url"
 	"path"
 	"time"
