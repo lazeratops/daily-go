@@ -11,6 +11,7 @@ import (
 	room2 "golang/daily/room"
 	"os"
 	"regexp"
+	"strings"
 )
 
 // roomCreate() creates a Daily room
@@ -36,7 +37,7 @@ func roomCreate(logger *zap.SugaredLogger, apiKey string, cmd RoomCreateCmd) err
 	if err := json.Unmarshal(data, &rp); err != nil {
 		return err
 	}
-	r, err := d.CreateRoom(daily2.RoomCreateParams{
+	r, err := d.CreateRoom(room2.CreateParams{
 		Name:            cmd.Name,
 		Prefix:          cmd.Prefix,
 		IsPrivate:       cmd.IsPrivate,
@@ -69,17 +70,17 @@ func roomGet(ctx context.Context, logger *zap.SugaredLogger, apiKey string, cmd 
 	}
 
 	// Prep get many params
-	var endingBefore, startingAfter int64
-	if !cmd.CreatedBefore.IsZero() {
-		endingBefore = cmd.CreatedBefore.Unix()
-	}
-	if !cmd.CreatedAfter.IsZero() {
-		startingAfter = cmd.CreatedAfter.Unix()
-	}
+	/*	var endingBefore, startingAfter int64
+		if !cmd.CreatedBefore.IsZero() {
+			endingBefore = cmd.CreatedBefore.Unix()
+		}
+		if !cmd.CreatedAfter.IsZero() {
+			startingAfter = cmd.CreatedAfter.Unix()
+		} */
 	params := &room2.GetManyParams{
-		Limit:         cmd.Limit,
-		EndingBefore:  endingBefore,
-		StartingAfter: startingAfter,
+		Limit: cmd.Limit,
+		//	EndingBefore:  endingBefore,
+		//	StartingAfter: startingAfter,
 	}
 	var rooms []room2.Room
 
@@ -110,7 +111,10 @@ func roomGet(ctx context.Context, logger *zap.SugaredLogger, apiKey string, cmd 
 		}
 		rooms := roomItemsToRooms(selectedNames, rooms)
 		_, err = showWithControls(ctx, logger, rooms, d)
-		return err
+		if err != nil {
+			return err
+		}
+		return roomGet(ctx, logger, apiKey, cmd)
 	}
 	return showInTable(rooms)
 }
@@ -138,18 +142,34 @@ func roomGetSingle(ctx context.Context, logger *zap.SugaredLogger, cmd RoomGetCm
 // showInTable() shows rooms in a non-interactive ASCII table view
 func showInTable(rooms []room2.Room) error {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "URL", "Private", "Created at", "Additional props"})
+	table.SetAutoWrapText(true)
+	table.SetHeader([]string{"URL", "Private", "Created at", "Additional props"})
+	hc := tablewriter.Colors{tablewriter.Bold, tablewriter.BgHiCyanColor}
+	table.SetHeaderColor(hc, hc, hc, hc)
 
-	for _, r := range rooms {
+	w1 := tablewriter.Colors{tablewriter.FgWhiteColor}
+	w2 := tablewriter.Colors{tablewriter.FgHiWhiteColor}
+
+	for i, r := range rooms {
 		var private string
 		if r.Privacy == room2.PrivacyPrivate {
 			private = "\u2713"
 		}
+
+		// Marshal properties to string, add some spaces for wrapping
 		propsData, err := json.Marshal(r.AdditionalProps)
 		if err != nil {
 			return err
 		}
-		table.Append([]string{r.ID, r.Url, private, r.CreatedAt.String(), string(propsData)})
+		ps := strings.ReplaceAll(string(propsData), ",", ", ")
+
+		// Set color to use for row
+		c := w1
+		if i%2 == 0 {
+			c = w2
+		}
+
+		table.Rich([]string{r.Url, private, r.CreatedAt.String(), ps}, []tablewriter.Colors{c, c, c})
 	}
 	table.Render()
 	return nil

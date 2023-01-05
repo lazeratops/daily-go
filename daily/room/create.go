@@ -18,6 +18,7 @@ type CreateParams struct {
 	IsPrivate       bool
 	Props           RoomProps
 	AdditionalProps map[string]interface{}
+	Prefix          string
 }
 
 type createRoomBody struct {
@@ -28,11 +29,11 @@ type createRoomBody struct {
 
 // CreateWithPrefix creates a room with the name containing the specified
 // prefix. The rest of the name is randomized.
-func CreateWithPrefix(params CreateParams, prefix string) (*Room, error) {
-	if len(prefix) > 10 {
+func CreateWithPrefix(params CreateParams) (*Room, error) {
+	if len(params.Prefix) > 10 {
 		return nil, fmt.Errorf("prefix too long, must be up to 10 characters")
 	}
-	name, err := generateNameWithPrefix(prefix)
+	name, err := generateNameWithPrefix(params.Prefix)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate room name: %w", err)
 	}

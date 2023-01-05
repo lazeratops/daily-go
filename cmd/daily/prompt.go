@@ -44,7 +44,6 @@ func selectRoomNames(selectedPos int, selection []*roomItem, allRooms []room2.Ro
 				{{end}} {{ .Name }} - label`,
 		Active:   "→ {{if .IsSelected}}✔ {{end}}{{ .Name | cyan }} ({{ .ID | red }})",
 		Inactive: "{{if .IsSelected}}✔ {{end}}{{ .Name | cyan }} ({{ .ID | red }})",
-		Selected: "→ {{if .IsSelected}}✔ {{end}}{{ .Name | red | cyan }}",
 		Details: `
 --------- Room ----------
 {{ "Name:" | faint }}	{{ .Name }}
@@ -60,12 +59,13 @@ func selectRoomNames(selectedPos int, selection []*roomItem, allRooms []room2.Ro
 	}
 
 	prompt := promptui.Select{
-		Label:     "Room",
-		Items:     items,
-		Templates: templates,
-		Size:      4,
-		Searcher:  searcher,
-		CursorPos: selectedPos,
+		Label:        "Room",
+		Items:        items,
+		Templates:    templates,
+		Size:         25,
+		Searcher:     searcher,
+		CursorPos:    selectedPos,
+		HideSelected: true,
 	}
 
 	i, _, err := prompt.Run()

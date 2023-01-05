@@ -7,9 +7,8 @@ import (
 	"golang/daily/errors"
 	"io"
 	"net/http"
+	"reflect"
 	"regexp"
-	"strconv"
-	"time"
 )
 
 type getManyResponse struct {
@@ -18,29 +17,9 @@ type getManyResponse struct {
 }
 
 type GetManyParams struct {
-	Limit         int   `json:"limit"`
-	EndingBefore  int64 `json:"ending_before"`
-	StartingAfter int64 `json:"starting_after"`
-}
-
-// SetEndingBefore sets EndingBefore as a Unix timestamp
-func (p *GetManyParams) SetEndingBefore(endingBefore time.Time) {
-	p.EndingBefore = endingBefore.Unix()
-}
-
-// GetEndingBefore retrieves the room EndingBefore
-func (p *GetManyParams) GetEndingBefore() time.Time {
-	return time.Unix(p.EndingBefore, 0)
-}
-
-// SetStartingAfter sets StartingAfter as a Unix timestamp
-func (p *GetManyParams) SetStartingAfter(startingAfter time.Time) {
-	p.StartingAfter = startingAfter.Unix()
-}
-
-// GetStartingAfter retrieves the room StartingAfter
-func (p *GetManyParams) GetStartingAfter() time.Time {
-	return time.Unix(p.StartingAfter, 0)
+	Limit         int    `json:"limit"`
+	EndingBefore  string `json:"ending_before"`
+	StartingAfter string `json:"starting_after"`
 }
 
 func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
@@ -62,8 +41,7 @@ func GetMany(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 		// Get the remaining rooms
 		lastRoom := rooms.Data[l-1]
 		newParams := GetManyParams{
-			StartingAfter: params.StartingAfter,
-			EndingBefore:  lastRoom.CreatedAt.Unix(),
+			StartingAfter: lastRoom.ID,
 		}
 		moreRooms, err := GetMany(creds, &newParams)
 		if err != nil {
@@ -100,7 +78,7 @@ func getAllRooms(creds auth.Creds, params *GetManyParams) ([]Room, error) {
 	if rooms.TotalCount > l {
 		lastRoom := rooms.Data[l-1]
 		newParams := GetManyParams{
-			EndingBefore: lastRoom.CreatedAt.Unix(),
+			StartingAfter: lastRoom.ID,
 		}
 		moreRooms, err := getAllRooms(creds, &newParams)
 		if err != nil {
@@ -127,18 +105,17 @@ func doGetRooms(creds auth.Creds, params *GetManyParams) (*getManyResponse, erro
 		}
 
 		var paramsMap map[string]string
-		var m map[string]int
+		var m map[string]interface{}
 		if err := json.Unmarshal(data, &m); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal JSON params to map: %w", err)
 		}
 
 		paramsMap = make(map[string]string)
 		for k, v := range m {
-			if v == 0 {
+			if v == reflect.Zero(reflect.TypeOf(v)).Interface() {
 				continue
 			}
-			s := strconv.Itoa(v)
-			paramsMap[k] = s
+			paramsMap[k] = fmt.Sprintf("%v", v)
 		}
 
 		endpoint, err = roomsEndpointWithParams(creds.APIURL, paramsMap)

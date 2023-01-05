@@ -8,16 +8,8 @@ import (
 	"time"
 )
 
-type RoomCreateParams struct {
-	Name            string
-	Prefix          string
-	IsPrivate       bool
-	Props           room2.RoomProps
-	AdditionalProps map[string]interface{}
-}
-
 // CreateRoom creates a Daily room using Daily's REST API
-func (d *Daily) CreateRoom(params RoomCreateParams) (*room2.Room, error) {
+func (d *Daily) CreateRoom(params room2.CreateParams) (*room2.Room, error) {
 	creds := auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
@@ -31,7 +23,8 @@ func (d *Daily) CreateRoom(params RoomCreateParams) (*room2.Room, error) {
 			IsPrivate:       params.IsPrivate,
 			Props:           params.Props,
 			AdditionalProps: params.AdditionalProps,
-		}, params.Prefix)
+			Prefix:          params.Prefix,
+		})
 	}
 	return room2.Create(room2.CreateParams{
 		Creds:           creds,
@@ -84,4 +77,20 @@ func (d *Daily) DeleteRoom(roomName string) error {
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
 	}, roomName)
+}
+
+// SendAppMessage sends an "app-message" event to the given room
+func (d *Daily) SendAppMessage(roomName string, data string, recipient *string) error {
+	r := "*"
+	if recipient != nil {
+		r = *recipient
+	}
+	return room2.SendAppMessage(auth.Creds{
+		APIKey: d.apiKey,
+		APIURL: d.apiURL,
+	}, room2.SendAppMessageParams{
+		RoomName:  roomName,
+		Data:      data,
+		Recipient: r,
+	})
 }

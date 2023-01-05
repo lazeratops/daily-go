@@ -15,13 +15,13 @@ type RoomCreateCmd struct {
 }
 
 type RoomGetCmd struct {
-	Name           string    `help:"Name of room to get"`
-	Regex          string    `help:"Regex to filter room names by"`
-	Interactive    bool      `help:"Show results in interactive format"`
-	Limit          int       `help:"Maximum number of rooms to retrieve"`
-	CreatedBefore  time.Time `help:"Latest creation date"`
-	CreatedAfter   time.Time `help:"Earliest creation date"`
-	IncludeExpired bool      `help:"Include expired rooms" default:"true" negatable:""`
+	Name        string `help:"Name of room to get"`
+	Regex       string `help:"Regex to filter room names by"`
+	Interactive bool   `help:"Show results in interactive format"`
+	Limit       int    `help:"Maximum number of rooms to retrieve"`
+	//	CreatedBefore  time.Time `help:"Latest creation date"`
+	//	CreatedAfter   time.Time `help:"Earliest creation date"`
+	IncludeExpired bool `help:"Include expired rooms" default:"true" negatable:""`
 }
 
 var cli struct {
