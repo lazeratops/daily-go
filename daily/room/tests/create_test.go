@@ -1,10 +1,10 @@
 package tests
 
 import (
+	"github.com/lazeratops/daily-go/daily/auth"
+	"github.com/lazeratops/daily-go/daily/errors"
+	"github.com/lazeratops/daily-go/daily/room"
 	"github.com/stretchr/testify/require"
-	"golang/daily/auth"
-	"golang/daily/errors"
-	room2 "golang/daily/room"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,14 +14,14 @@ func TestCreate(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
 		name    string
-		params  room2.CreateParams
+		params  room.CreateParams
 		retCode int
 		retBody string
 		wantErr error
 	}{
 		{
 			name:    "success",
-			params:  room2.CreateParams{},
+			params:  room.CreateParams{},
 			retCode: 200,
 			retBody: `
 				{
@@ -40,7 +40,7 @@ func TestCreate(t *testing.T) {
 		},
 		{
 			name:    "failure",
-			params:  room2.CreateParams{},
+			params:  room.CreateParams{},
 			retCode: 400,
 			wantErr: errors.ErrFailedAPICall,
 		},
@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 				APIKey: "somekey",
 				APIURL: testServer.URL,
 			}
-			_, gotErr := room2.Create(p)
+			_, gotErr := room.Create(p)
 			require.ErrorIs(t, gotErr, tc.wantErr)
 			defer testServer.Close()
 		})

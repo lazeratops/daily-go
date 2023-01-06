@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/lazeratops/daily-go/daily"
+	"github.com/lazeratops/daily-go/daily/room"
 	"github.com/olekukonko/tablewriter"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
-	daily2 "golang/daily"
-	room2 "golang/daily/room"
 	"os"
 	"regexp"
 	"strings"
@@ -23,13 +23,13 @@ func roomCreate(logger *zap.SugaredLogger, apiKey string, cmd RoomCreateCmd) err
 	}
 
 	// Init Daily with given API key
-	d, err := daily2.NewDaily(apiKey)
+	d, err := daily.NewDaily(apiKey)
 	if err != nil {
 		return err
 	}
 
 	// Prepare room properties
-	var rp room2.RoomProps
+	var rp room.RoomProps
 	data, err := json.Marshal(cmd.Props)
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func roomCreate(logger *zap.SugaredLogger, apiKey string, cmd RoomCreateCmd) err
 	if err := json.Unmarshal(data, &rp); err != nil {
 		return err
 	}
-	r, err := d.CreateRoom(room2.CreateParams{
+	r, err := d.CreateRoom(room.CreateParams{
 		Name:            cmd.Name,
 		Prefix:          cmd.Prefix,
 		IsPrivate:       cmd.IsPrivate,
@@ -58,7 +58,7 @@ func roomCreate(logger *zap.SugaredLogger, apiKey string, cmd RoomCreateCmd) err
 // roomGet() retrieves the relevant room(s) in table or interactive mode
 func roomGet(ctx context.Context, logger *zap.SugaredLogger, apiKey string, cmd RoomGetCmd) error {
 	// Init Daily with given API key
-	d, err := daily2.NewDaily(apiKey)
+	d, err := daily.NewDaily(apiKey)
 	if err != nil {
 		return err
 	}
@@ -77,12 +77,12 @@ func roomGet(ctx context.Context, logger *zap.SugaredLogger, apiKey string, cmd 
 		if !cmd.CreatedAfter.IsZero() {
 			startingAfter = cmd.CreatedAfter.Unix()
 		} */
-	params := &room2.GetManyParams{
+	params := &room.GetManyParams{
 		Limit: cmd.Limit,
 		//	EndingBefore:  endingBefore,
 		//	StartingAfter: startingAfter,
 	}
-	var rooms []room2.Room
+	var rooms []room.Room
 
 	// If regex is provided, get rooms with regex
 	if cmd.Regex != "" {
@@ -119,17 +119,17 @@ func roomGet(ctx context.Context, logger *zap.SugaredLogger, apiKey string, cmd 
 	return showInTable(rooms)
 }
 
-func roomGetSingle(ctx context.Context, logger *zap.SugaredLogger, cmd RoomGetCmd, d *daily2.Daily) error {
+func roomGetSingle(ctx context.Context, logger *zap.SugaredLogger, cmd RoomGetCmd, d *daily.Daily) error {
 	r, err := d.GetRoom(cmd.Name)
 	if err != nil {
 		return err
 	}
 	// Show room in non-interactive ASCII table
 	if !cmd.Interactive {
-		return showInTable([]room2.Room{*r})
+		return showInTable([]room.Room{*r})
 	}
 	// Show room in interactive mode
-	deleted, err := showWithControls(ctx, logger, []room2.Room{*r}, d)
+	deleted, err := showWithControls(ctx, logger, []room.Room{*r}, d)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func roomGetSingle(ctx context.Context, logger *zap.SugaredLogger, cmd RoomGetCm
 }
 
 // showInTable() shows rooms in a non-interactive ASCII table view
-func showInTable(rooms []room2.Room) error {
+func showInTable(rooms []room.Room) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAutoWrapText(true)
 	table.SetHeader([]string{"URL", "Private", "Created at", "Additional props"})
@@ -152,7 +152,7 @@ func showInTable(rooms []room2.Room) error {
 
 	for i, r := range rooms {
 		var private string
-		if r.Privacy == room2.PrivacyPrivate {
+		if r.Privacy == room.PrivacyPrivate {
 			private = "\u2713"
 		}
 
@@ -176,7 +176,7 @@ func showInTable(rooms []room2.Room) error {
 }
 
 // deleteRooms() deletes the given rooms
-func deleteRooms(ctx context.Context, logger *zap.SugaredLogger, rooms []room2.Room, daily *daily2.Daily) error {
+func deleteRooms(ctx context.Context, logger *zap.SugaredLogger, rooms []room.Room, daily *daily.Daily) error {
 	errs, ctx := errgroup.WithContext(ctx)
 
 	for _, r := range rooms {
@@ -191,6 +191,6 @@ func deleteRooms(ctx context.Context, logger *zap.SugaredLogger, rooms []room2.R
 }
 
 // removeRoom() removes the given index from a slice of rooms
-func removeRoom(rooms []room2.Room, idx int) []room2.Room {
+func removeRoom(rooms []room.Room, idx int) []room.Room {
 	return append(rooms[:idx], rooms[idx+1:]...)
 }

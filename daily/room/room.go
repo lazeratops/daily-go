@@ -3,7 +3,7 @@ package room
 import (
 	"encoding/json"
 	"fmt"
-	"golang/daily/errors"
+	"github.com/lazeratops/daily-go/daily/errors"
 	"net/url"
 	"path"
 	"time"

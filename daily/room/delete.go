@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang/daily/auth"
-	errors2 "golang/daily/errors"
+	"github.com/lazeratops/daily-go/daily/auth"
+	errors2 "github.com/lazeratops/daily-go/daily/errors"
 	"io"
 	"net/http"
 )

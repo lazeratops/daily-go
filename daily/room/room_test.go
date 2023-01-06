@@ -1,9 +1,9 @@
 package room
 
 import (
+	"github.com/lazeratops/daily-go/daily/auth"
+	"github.com/lazeratops/daily-go/daily/errors"
 	"github.com/stretchr/testify/require"
-	"golang/daily/auth"
-	"golang/daily/errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"

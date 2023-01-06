@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/lazeratops/daily-go/daily"
+	"github.com/lazeratops/daily-go/daily/room"
 	"github.com/manifoldco/promptui"
 	"go.uber.org/zap"
-	daily2 "golang/daily"
-	room2 "golang/daily/room"
 	"strings"
 )
 
@@ -16,7 +16,7 @@ type roomItem struct {
 	IsSelected bool
 }
 
-func selectRoomNames(selectedPos int, selection []*roomItem, allRooms []room2.Room) ([]*roomItem, error) {
+func selectRoomNames(selectedPos int, selection []*roomItem, allRooms []room.Room) ([]*roomItem, error) {
 	var items = []*roomItem{
 		{
 			ID:   "Done",
@@ -90,7 +90,7 @@ func selectRoomNames(selectedPos int, selection []*roomItem, allRooms []room2.Ro
 }
 
 // showWithControls() shows room details with control options
-func showWithControls(ctx context.Context, logger *zap.SugaredLogger, rooms []room2.Room, daily *daily2.Daily) (bool, error) {
+func showWithControls(ctx context.Context, logger *zap.SugaredLogger, rooms []room.Room, daily *daily.Daily) (bool, error) {
 	if err := showInTable(rooms); err != nil {
 		return false, err
 	}
@@ -121,8 +121,8 @@ func showWithControls(ctx context.Context, logger *zap.SugaredLogger, rooms []ro
 	}
 }
 
-func roomItemsToRooms(items []*roomItem, rooms []room2.Room) []room2.Room {
-	var retRooms []room2.Room
+func roomItemsToRooms(items []*roomItem, rooms []room.Room) []room.Room {
+	var retRooms []room.Room
 	for _, i := range items {
 		for _, r := range rooms {
 			if i.ID == r.ID {

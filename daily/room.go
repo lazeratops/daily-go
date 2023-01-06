@@ -2,14 +2,14 @@ package daily
 
 import (
 	"fmt"
-	"golang/daily/auth"
-	room2 "golang/daily/room"
+	"github.com/lazeratops/daily-go/daily/auth"
+	"github.com/lazeratops/daily-go/daily/room"
 	"regexp"
 	"time"
 )
 
 // CreateRoom creates a Daily room using Daily's REST API
-func (d *Daily) CreateRoom(params room2.CreateParams) (*room2.Room, error) {
+func (d *Daily) CreateRoom(params room.CreateParams) (*room.Room, error) {
 	creds := auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
@@ -18,7 +18,7 @@ func (d *Daily) CreateRoom(params room2.CreateParams) (*room2.Room, error) {
 		params.Props.SetExpiry(time.Now().Add(d.defaultRoomExp))
 	}
 	if params.Prefix != "" {
-		return room2.CreateWithPrefix(room2.CreateParams{
+		return room.CreateWithPrefix(room.CreateParams{
 			Creds:           creds,
 			IsPrivate:       params.IsPrivate,
 			Props:           params.Props,
@@ -26,7 +26,7 @@ func (d *Daily) CreateRoom(params room2.CreateParams) (*room2.Room, error) {
 			Prefix:          params.Prefix,
 		})
 	}
-	return room2.Create(room2.CreateParams{
+	return room.Create(room.CreateParams{
 		Creds:           creds,
 		Name:            params.Name,
 		IsPrivate:       params.IsPrivate,
@@ -37,14 +37,14 @@ func (d *Daily) CreateRoom(params room2.CreateParams) (*room2.Room, error) {
 
 // GetRooms returns multiple Daily rooms matching the given
 // limits, if any
-func (d *Daily) GetRooms(params *room2.GetManyParams) ([]room2.Room, error) {
-	return room2.GetMany(auth.Creds{
+func (d *Daily) GetRooms(params *room.GetManyParams) ([]room.Room, error) {
+	return room.GetMany(auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
 	}, params)
 }
 
-func (d *Daily) GetRoomsWithRegexStr(params *room2.GetManyParams, nameRegexStr string) ([]room2.Room, error) {
+func (d *Daily) GetRoomsWithRegexStr(params *room.GetManyParams, nameRegexStr string) ([]room.Room, error) {
 	reg, err := regexp.Compile(nameRegexStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse regex: %w", err)
@@ -52,8 +52,8 @@ func (d *Daily) GetRoomsWithRegexStr(params *room2.GetManyParams, nameRegexStr s
 	return d.GetRoomsWithRegex(params, reg)
 }
 
-func (d *Daily) GetRoomsWithRegex(params *room2.GetManyParams, nameRegex *regexp.Regexp) ([]room2.Room, error) {
-	rooms, err := room2.GetManyWithRegex(auth.Creds{
+func (d *Daily) GetRoomsWithRegex(params *room.GetManyParams, nameRegex *regexp.Regexp) ([]room.Room, error) {
+	rooms, err := room.GetManyWithRegex(auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
 	}, params, nameRegex)
@@ -64,8 +64,8 @@ func (d *Daily) GetRoomsWithRegex(params *room2.GetManyParams, nameRegex *regexp
 }
 
 // GetRoom returns a single Daily room matching the given name
-func (d *Daily) GetRoom(name string) (*room2.Room, error) {
-	return room2.GetOne(auth.Creds{
+func (d *Daily) GetRoom(name string) (*room.Room, error) {
+	return room.GetOne(auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
 	}, name)
@@ -73,7 +73,7 @@ func (d *Daily) GetRoom(name string) (*room2.Room, error) {
 
 // DeleteRoom deletes the given Daily room
 func (d *Daily) DeleteRoom(roomName string) error {
-	return room2.Delete(auth.Creds{
+	return room.Delete(auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
 	}, roomName)
@@ -85,10 +85,10 @@ func (d *Daily) SendAppMessage(roomName string, data string, recipient *string) 
 	if recipient != nil {
 		r = *recipient
 	}
-	return room2.SendAppMessage(auth.Creds{
+	return room.SendAppMessage(auth.Creds{
 		APIKey: d.apiKey,
 		APIURL: d.apiURL,
-	}, room2.SendAppMessageParams{
+	}, room.SendAppMessageParams{
 		RoomName:  roomName,
 		Data:      data,
 		Recipient: r,

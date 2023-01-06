@@ -1,4 +1,4 @@
-module golang
+module github.com/lazeratops/daily-go
 
 go 1.19
 
