@@ -5,6 +5,8 @@
 
 ### Usage
 
+Run `go get github.com/lazeratops/daily-go`
+
 ```go
 import (
     "fmt"
