@@ -56,11 +56,11 @@ func TestCreate(t *testing.T) {
 				require.NoError(t, err)
 			}))
 			p := tc.params
-			p.Creds = auth.Creds{
+			creds := auth.Creds{
 				APIKey: "somekey",
 				APIURL: testServer.URL,
 			}
-			_, gotErr := room.Create(p)
+			_, gotErr := room.Create(creds, p)
 			require.ErrorIs(t, gotErr, tc.wantErr)
 			defer testServer.Close()
 		})

@@ -128,7 +128,7 @@ func TestCreate(t *testing.T) {
 			defer testServer.Close()
 
 			createParams := tc.createParams
-			createParams.Creds = auth.Creds{
+			creds := auth.Creds{
 				APIKey: "someKey",
 				APIURL: testServer.URL,
 			}
@@ -140,7 +140,7 @@ func TestCreate(t *testing.T) {
 				createParams.AdditionalProps = tc.getAdditionalProps()
 			}
 
-			gotRoom, gotErr := Create(createParams)
+			gotRoom, gotErr := Create(creds, createParams)
 			require.ErrorIs(t, gotErr, tc.wantErr)
 			if gotErr == nil {
 				require.EqualValues(t, tc.wantRoom, *gotRoom)

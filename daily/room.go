@@ -18,16 +18,14 @@ func (d *Daily) CreateRoom(params room.CreateParams) (*room.Room, error) {
 		params.Props.SetExpiry(time.Now().Add(d.defaultRoomExp))
 	}
 	if params.Prefix != "" {
-		return room.CreateWithPrefix(room.CreateParams{
-			Creds:           creds,
+		return room.CreateWithPrefix(creds, room.CreateParams{
 			IsPrivate:       params.IsPrivate,
 			Props:           params.Props,
 			AdditionalProps: params.AdditionalProps,
 			Prefix:          params.Prefix,
 		})
 	}
-	return room.Create(room.CreateParams{
-		Creds:           creds,
+	return room.Create(creds, room.CreateParams{
 		Name:            params.Name,
 		IsPrivate:       params.IsPrivate,
 		Props:           params.Props,

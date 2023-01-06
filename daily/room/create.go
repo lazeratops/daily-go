@@ -13,7 +13,6 @@ import (
 )
 
 type CreateParams struct {
-	Creds           auth.Creds
 	Name            string
 	IsPrivate       bool
 	Props           RoomProps
@@ -29,7 +28,7 @@ type createRoomBody struct {
 
 // CreateWithPrefix creates a room with the name containing the specified
 // prefix. The rest of the name is randomized.
-func CreateWithPrefix(params CreateParams) (*Room, error) {
+func CreateWithPrefix(creds auth.Creds, params CreateParams) (*Room, error) {
 	if len(params.Prefix) > 10 {
 		return nil, fmt.Errorf("prefix too long, must be up to 10 characters")
 	}
@@ -38,17 +37,17 @@ func CreateWithPrefix(params CreateParams) (*Room, error) {
 		return nil, fmt.Errorf("failed to generate room name: %w", err)
 	}
 	params.Name = name
-	return Create(params)
+	return Create(creds, params)
 }
 
-func Create(params CreateParams) (*Room, error) {
+func Create(creds auth.Creds, params CreateParams) (*Room, error) {
 	// Make the request body for room creation
 	reqBody, err := makeCreateRoomBody(params.Name, params.IsPrivate, params.Props, params.AdditionalProps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make room creation request body: %w", err)
 	}
 
-	endpoint, err := roomsEndpoint(params.Creds.APIURL)
+	endpoint, err := roomsEndpoint(creds.APIURL)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +58,7 @@ func Create(params CreateParams) (*Room, error) {
 	}
 
 	// Prepare auth and content-type headers for request
-	auth.SetAPIKeyAuthHeaders(req, params.Creds.APIKey)
+	auth.SetAPIKeyAuthHeaders(req, creds.APIKey)
 
 	// Do the thing!!!
 	res, err := http.DefaultClient.Do(req)
