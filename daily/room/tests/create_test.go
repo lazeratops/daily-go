@@ -8,19 +8,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestCreate(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
-		name    string
-		params  room.CreateParams
-		retCode int
-		retBody string
-		wantErr error
+		name               string
+		params             room.CreateParams
+		retCode            int
+		retBody            string
+		wantErr            error
+		wantRoom           room.Room
+		getWantedCreatedAt func() time.Time
 	}{
 		{
-			name:    "success",
+			name:    "success without params",
 			params:  room.CreateParams{},
 			retCode: 200,
 			retBody: `
@@ -37,6 +40,21 @@ func TestCreate(t *testing.T) {
 				  }
 				}
         `,
+			wantRoom: room.Room{
+				ID:      "987b5eb5-d116-4a4e-8e2c-14fcb5710966",
+				Name:    "getting-started-webinar",
+				Url:     "https://api-demo.daily.co/getting-started-webinar",
+				Privacy: room.PrivacyPrivate,
+				Config: room.Props{
+					StartAudioOff: true,
+					StartVideoOff: true,
+				},
+			},
+			getWantedCreatedAt: func() time.Time {
+				gotTime, gotErr := time.Parse(time.RFC3339, "2019-01-26T09:01:22.000Z")
+				require.NoError(t, gotErr)
+				return gotTime
+			},
 		},
 		{
 			name:    "failure",
@@ -60,8 +78,12 @@ func TestCreate(t *testing.T) {
 				APIKey: "somekey",
 				APIURL: testServer.URL,
 			}
-			_, gotErr := room.Create(creds, p)
+			gotRoom, gotErr := room.Create(creds, p)
 			require.ErrorIs(t, gotErr, tc.wantErr)
+			if tc.wantErr == nil {
+				tc.wantRoom.CreatedAt = tc.getWantedCreatedAt()
+				require.EqualValues(t, &tc.wantRoom, gotRoom)
+			}
 			defer testServer.Close()
 		})
 

@@ -14,7 +14,7 @@ type UpdateParams struct {
 	Creds           auth.Creds
 	Name            string
 	Privacy         *Privacy
-	Props           RoomProps
+	Props           Props
 	AdditionalProps map[string]interface{}
 }
 
@@ -68,7 +68,7 @@ func Update(params UpdateParams) error {
 	return nil
 }
 
-func makeUpdateRoomBody(privacy *Privacy, props RoomProps, additionalProps map[string]interface{}) (*bytes.Buffer, error) {
+func makeUpdateRoomBody(privacy *Privacy, props Props, additionalProps map[string]interface{}) (*bytes.Buffer, error) {
 	// Concatenate original and additional properties into a JSON blob
 	propsData, err := concatRoomProperties(props, additionalProps)
 	if err != nil {

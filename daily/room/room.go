@@ -23,7 +23,7 @@ type Room struct {
 	Url             string    `json:"url"`
 	Privacy         Privacy   `json:"privacy"`
 	CreatedAt       time.Time `json:"created_at"`
-	Config          RoomProps `json:"config"`
+	Config          Props     `json:"config"`
 	AdditionalProps map[string]interface{}
 }
 
@@ -34,7 +34,7 @@ func (r *Room) UnmarshalJSON(data []byte) error {
 		Url       string    `json:"url"`
 		Privacy   Privacy   `json:"privacy"`
 		CreatedAt time.Time `json:"created_at"`
-		Config    RoomProps `json:"config"`
+		Config    Props     `json:"config"`
 	}{}
 
 	if err := json.Unmarshal(data, &rm); err != nil {

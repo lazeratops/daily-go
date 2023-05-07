@@ -15,7 +15,7 @@ import (
 type CreateParams struct {
 	Name            string
 	IsPrivate       bool
-	Props           RoomProps
+	Props           Props
 	AdditionalProps map[string]interface{}
 	Prefix          string
 }
@@ -84,7 +84,7 @@ func Create(creds auth.Creds, params CreateParams) (*Room, error) {
 	return &room, nil
 }
 
-func makeCreateRoomBody(name string, isPrivate bool, props RoomProps, additionalProps map[string]interface{}) (*bytes.Buffer, error) {
+func makeCreateRoomBody(name string, isPrivate bool, props Props, additionalProps map[string]interface{}) (*bytes.Buffer, error) {
 	// Concatenate original and additional properties into a JSON blob
 	propsData, err := concatRoomProperties(props, additionalProps)
 	if err != nil {
@@ -111,7 +111,7 @@ func makeCreateRoomBody(name string, isPrivate bool, props RoomProps, additional
 	return bytes.NewBuffer(bodyBlob), nil
 }
 
-func concatRoomProperties(props RoomProps, additionalProps map[string]interface{}) (map[string]interface{}, error) {
+func concatRoomProperties(props Props, additionalProps map[string]interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(&props)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal room props: %w", err)
