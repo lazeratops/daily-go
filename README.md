@@ -1,6 +1,7 @@
 ## daily-go
 
 ![Build and test](https://github.com/lazeratops/daily-go/actions/workflows/build-and-test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/lazeratops/daily-go/branch/main/graph/badge.svg?token=LM3KMNT197)](https://codecov.io/gh/lazeratops/daily-go)
 
 `daily-go` is a Go library to communicate with [Daily's REST API](https://docs.daily.co/reference/rest-api).
 
