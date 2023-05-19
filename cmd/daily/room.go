@@ -29,7 +29,7 @@ func roomCreate(logger *zap.SugaredLogger, apiKey string, cmd RoomCreateCmd) err
 	}
 
 	// Prepare room properties
-	var rp room.RoomProps
+	var rp room.Props
 	data, err := json.Marshal(cmd.Props)
 	if err != nil {
 		return err
