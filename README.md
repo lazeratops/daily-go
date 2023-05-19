@@ -1,5 +1,7 @@
 ## daily-go
 
+![Build and test](https://github.com/lazeratops/daily-go/actions/workflows/build-and-test.yml/badge.svg)
+
 `daily-go` is a Go library to communicate with [Daily's REST API](https://docs.daily.co/reference/rest-api).
 
 
