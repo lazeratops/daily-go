@@ -32,3 +32,6 @@ jobs:
         with:
           name: coverage.html
           path: local/coverage.html
+
+      - name: Update coverage badge
+        uses: ncruces/go-coverage-report@main
