@@ -52,9 +52,10 @@ func Delete(creds auth.Creds, roomName string) error {
 	}
 	if dr.Deleted {
 		if dr.RoomName != roomName {
-			return fmt.Errorf("requested deletion was of room name '%s', but room reported deleted was '%s'", roomName, dr.RoomName)
+			err := fmt.Errorf("requested deletion was of room name '%s', but room reported deleted was '%s'", roomName, dr.RoomName)
+			return NewErrFailRoomDelete(err)
 		}
 		return nil
 	}
-	return errors.New("failed to delete room")
+	return NewErrFailRoomDelete(errors.New("room not deleted"))
 }
